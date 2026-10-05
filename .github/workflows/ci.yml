@@ -1,0 +1,49 @@
+name: CI
+
+# Prompt 1 establishes the job skeleton. Prompts 7 and 14 fill in the real
+# steps: forge fmt/build/test/coverage + slither_check.sh, ruff + mypy + pytest,
+# and eslint + tsc + vitest + next build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Scaffold placeholder
+        run: echo "contracts job wired in Prompt 7 (forge build/test/coverage) and Prompt 14 (Slither gate)."
+
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Scaffold placeholder
+        run: echo "backend job wired in Prompt 8 (ruff + mypy + pytest with testcontainers)."
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Scaffold placeholder
+        run: echo "frontend job wired in Prompt 11 (eslint + tsc + vitest + next build)."

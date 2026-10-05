@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * ChainGuard palette: dark, terminal-inspired.
+ * The app ships dark-only (the `dark` class is set on <html> in app/layout.tsx).
+ */
+@layer base {
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+
+    --card: 224 47% 7%;
+    --card-foreground: 210 20% 98%;
+
+    --primary: 158 64% 40%;
+    --primary-foreground: 224 71% 4%;
+
+    --secondary: 215 28% 14%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 215 28% 14%;
+    --muted-foreground: 217 11% 65%;
+
+    --accent: 215 28% 14%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
+
+    --success: 158 64% 40%;
+    --success-foreground: 224 71% 4%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 158 64% 40%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: var(--background);
+    --foreground: var(--foreground);
+    --card: var(--card);
+    --card-foreground: var(--card-foreground);
+    --primary: var(--primary);
+    --primary-foreground: var(--primary-foreground);
+    --secondary: var(--secondary);
+    --secondary-foreground: var(--secondary-foreground);
+    --muted: var(--muted);
+    --muted-foreground: var(--muted-foreground);
+    --accent: var(--accent);
+    --accent-foreground: var(--accent-foreground);
+    --destructive: var(--destructive);
+    --destructive-foreground: var(--destructive-foreground);
+    --success: var(--success);
+    --success-foreground: var(--success-foreground);
+    --border: var(--border);
+    --input: var(--input);
+    --ring: var(--ring);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Keyboard focus must always be visible (accessibility requirement). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}

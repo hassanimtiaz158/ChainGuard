@@ -1,0 +1,19 @@
+# Normalize line endings so Linux CI and Windows checkouts behave identically.
+# Without this, a Windows checkout can commit CRLF into Makefiles and shell
+# scripts, which then fail under /bin/sh on the CI runners.
+
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Lockfiles and binaries must stay byte-exact.
+*.lock text eol=lf
+*.svg binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.zip binary

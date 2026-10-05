@@ -1,0 +1,43 @@
+# ---------- Foundry ----------
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+# vendored by `forge install` (see Makefile: deps)
+contracts/lib/
+# generated deployment addresses for the local lab chain
+contracts/deployments/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---------- Node ----------
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+
+# ---------- Secrets / env ----------
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ---------- OS / editor ----------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

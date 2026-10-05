@@ -1,0 +1,198 @@
+# ChainGuard local stack.
+#
+# Safety properties enforced here:
+#   * `anvil` publishes NO host ports. The lab chain (31337) is reachable only
+#     from the other ChainGuard services over the internal Compose network.
+#   * `analyzer-sandbox` runs with `network_mode: none`, a read-only root
+#     filesystem and a tmpfs workspace, and is reached over a mounted unix
+#     socket -- uploaded Solidity can never reach the network.
+#   * postgres and redis are likewise internal-only.
+
+name: chainguard
+
+services:
+  # ------------------------------------------------------------------ chain --
+  anvil:
+    build:
+      context: ./docker
+      dockerfile: anvil.Dockerfile
+    container_name: chainguard-anvil
+    restart: unless-stopped
+    command:
+      - anvil
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8545"
+      - --chain-id
+      - "31337"
+      - --accounts
+      - "20"
+      - --balance
+      - "10000"
+      - --block-time
+      - "1"
+    # Intentionally no `ports:` -- see header.
+    expose:
+      - "8545"
+    networks:
+      - chainguard
+    healthcheck:
+      test: ["CMD-SHELL", "cast block-number --rpc-url http://127.0.0.1:8545 > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 5s
+
+  # ------------------------------------------------------------- datastores --
+  postgres:
+    image: postgres:16-alpine
+    container_name: chainguard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chainguard
+      POSTGRES_PASSWORD: chainguard
+      POSTGRES_DB: chainguard
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - chainguard
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chainguard -d chainguard"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: chainguard-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    expose:
+      - "6379"
+    networks:
+      - chainguard
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ------------------------------------------------------------------- api --
+  api:
+    build:
+      context: ./backend
+      dockerfile: ../docker/api.Dockerfile
+    container_name: chainguard-api
+    restart: unless-stopped
+    depends_on:
+      anvil:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RPC_URL: http://anvil:8545
+      EXPECTED_CHAIN_ID: "31337"
+      DATABASE_URL: postgresql+psycopg://chainguard:chainguard@postgres:5432/chainguard
+      REDIS_URL: redis://redis:6379/0
+      SCENARIOS_DIR: /app/scenarios
+      EXPLANATIONS_DIR: /app/explanations
+      LAB_STATE_DIR: /app/lab
+      CONTRACTS_OUT_DIR: /app/contracts/out
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./scenarios:/app/scenarios:ro
+      - ./explanations:/app/explanations:ro
+      - labstate:/app/lab
+    networks:
+      - chainguard
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status==200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  # ---------------------------------------------------------------- worker --
+  worker:
+    build:
+      context: ./backend
+      dockerfile: ../docker/worker.Dockerfile
+    container_name: chainguard-worker
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      RPC_URL: http://anvil:8545
+      EXPECTED_CHAIN_ID: "31337"
+      DATABASE_URL: postgresql+psycopg://chainguard:chainguard@postgres:5432/chainguard
+      REDIS_URL: redis://redis:6379/0
+      LAB_STATE_DIR: /app/lab
+      ANALYZER_SOCKET: /run/chainguard/analyzer.sock
+    volumes:
+      - labstate:/app/lab
+      - analyzerbus:/run/chainguard
+    networks:
+      - chainguard
+
+  # --------------------------------------------------------------- sandbox --
+  # Compiles + statically analyzes uploaded Solidity. Never executes it.
+  analyzer-sandbox:
+    build:
+      context: ./docker
+      dockerfile: analyzer-sandbox.Dockerfile
+    container_name: chainguard-analyzer-sandbox
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    # No network at all: it can neither be reached from nor reach anything else.
+    network_mode: none
+    read_only: true
+    user: "10001:10001"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /workspace:size=64m,exec,nosuid
+    volumes:
+      - analyzerbus:/run/chainguard
+    command: ["python", "/opt/sandbox/server.py"]
+
+  # ------------------------------------------------------------------- web --
+  web:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/web.Dockerfile
+    container_name: chainguard-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_INTERNAL_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    networks:
+      - chainguard
+
+networks:
+  chainguard:
+    driver: bridge
+
+volumes:
+  pgdata:
+  labstate:
+  analyzerbus:
