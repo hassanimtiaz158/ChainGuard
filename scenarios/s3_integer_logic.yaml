@@ -1,0 +1,40 @@
+id: s3_integer_logic
+title: Integer & Rounding Logic
+severity: high
+swc: SWC-101
+difficulty: intermediate
+real_world: "BEC Token BatchOverflow (2018)"
+contracts:
+  vulnerable: VulnerableToken
+  secure: SecureToken
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s3_integer_logic/VulnerableToken.sol
+  secure: contracts/src/scenarios/s3_integer_logic/SecureToken.sol
+  attacker: contracts/src/scenarios/s3_integer_logic/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 59
+    - 86
+  secure:
+    - 52
+    - 77
+steps:
+  - action: deploy_attacker
+    args:
+      target: "$TARGET"
+  - action: call
+    contract: attacker
+    fn: attack
+tracked_balances:
+  - victim
+  - attacker
+chain:
+  automine: true
+expected:
+  vulnerable:
+    outcome: success
+    attacker_balance_exceeds_supply: true
+  secure:
+    outcome: reverted
+explanation_md: explanations/s3.md
