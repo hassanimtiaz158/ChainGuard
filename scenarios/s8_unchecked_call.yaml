@@ -1,0 +1,40 @@
+id: s8_unchecked_call
+title: Unchecked External Call
+severity: high
+swc: SWC-104
+difficulty: beginner
+real_world: "Unchecked ERC20 transfer returns (USDT-style tokens)"
+contracts:
+  vulnerable: VulnerablePayout
+  secure: SecurePayout
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s8_unchecked_call/VulnerablePayout.sol
+  secure: contracts/src/scenarios/s8_unchecked_call/SecurePayout.sol
+  attacker: contracts/src/scenarios/s8_unchecked_call/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 55
+    - 78
+  secure:
+    - 59
+    - 80
+steps:
+  - action: deploy_attacker
+    args:
+      target: "$TARGET"
+  - action: call
+    contract: attacker
+    fn: attack
+tracked_balances:
+  - victim
+  - attacker
+chain:
+  automine: true
+expected:
+  vulnerable:
+    outcome: success
+    victim_balance_eth: 10
+  secure:
+    outcome: reverted
+explanation_md: explanations/s8.md
