@@ -1,0 +1,41 @@
+id: s1_reentrancy
+title: Reentrancy
+severity: critical
+swc: SWC-107
+difficulty: beginner
+real_world: "The DAO (2016)"
+contracts:
+  vulnerable: VulnerableVault
+  secure: SecureVault
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s1_reentrancy/VulnerableVault.sol
+  secure: contracts/src/scenarios/s1_reentrancy/SecureVault.sol
+  attacker: contracts/src/scenarios/s1_reentrancy/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 45
+    - 51
+  secure:
+    - 30
+    - 37
+steps:
+  - action: deploy_attacker
+    args:
+      target: "$TARGET"
+  - action: call
+    contract: attacker
+    fn: attack
+    value_eth: 1
+tracked_balances:
+  - victim
+  - attacker
+chain:
+  automine: true
+expected:
+  vulnerable:
+    outcome: success
+    victim_balance_eth: 0
+  secure:
+    outcome: reverted
+explanation_md: explanations/s1.md
