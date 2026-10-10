@@ -1,0 +1,40 @@
+id: s2_access_control
+title: Access Control
+severity: high
+swc: SWC-105
+difficulty: beginner
+real_world: "Parity Multisig Wallet (2017)"
+contracts:
+  vulnerable: VulnerableWallet
+  secure: SecureWallet
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s2_access_control/VulnerableWallet.sol
+  secure: contracts/src/scenarios/s2_access_control/SecureWallet.sol
+  attacker: contracts/src/scenarios/s2_access_control/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 60
+    - 101
+  secure:
+    - 56
+    - 84
+steps:
+  - action: deploy_attacker
+    args:
+      target: "$TARGET"
+  - action: call
+    contract: attacker
+    fn: attack
+tracked_balances:
+  - victim
+  - attacker
+chain:
+  automine: true
+expected:
+  vulnerable:
+    outcome: success
+    victim_balance_eth: 0
+  secure:
+    outcome: reverted
+explanation_md: explanations/s2.md
