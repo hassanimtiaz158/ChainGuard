@@ -1,0 +1,42 @@
+id: s5_flashloan
+title: Flash-Loan Governance Attack
+severity: high
+swc: SWC-105
+difficulty: intermediate
+real_world: "Beanstalk (2022)"
+contracts:
+  vulnerable: VulnerableGovernance
+  secure: SecureGovernance
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s5_flashloan/VulnerableGovernance.sol
+  secure: contracts/src/scenarios/s5_flashloan/SecureGovernance.sol
+  attacker: contracts/src/scenarios/s5_flashloan/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 113
+  secure:
+    - 114
+# The attacker is funded by the MockLender (address injected as $LENDER) and
+# votes on the most recently opened proposal; the treasury then pays out when
+# the proposal is executed after the voting window closes.
+steps:
+  - action: deploy_attacker
+    args:
+      target: "$TARGET"
+      lender: "$LENDER"
+  - action: call
+    contract: attacker
+    fn: attack
+tracked_balances:
+  - treasury
+  - attacker
+chain:
+  automine: true
+expected:
+  vulnerable:
+    outcome: success
+    attacker_drains_treasury: true
+  secure:
+    outcome: reverted
+explanation_md: explanations/s5.md

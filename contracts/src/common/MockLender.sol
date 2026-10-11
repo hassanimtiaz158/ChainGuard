@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {MockERC20} from "./MockERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
@@ -28,7 +28,7 @@ interface IFlashLoanReceiver {
 
 /**
  * @title MockLender
- * @notice Fee-less flash-loan provider over a single MockERC20, used by the
+ * @notice Fee-less flash-loan provider over a single ERC20, used by the
  *         flash-loan scenario (S5) where an attacker borrows governance tokens,
  *         votes, and repays inside one transaction.
  *
@@ -41,7 +41,7 @@ contract MockLender {
     uint256 public constant FEE = 0;
 
     /// @notice The only token this lender will lend.
-    MockERC20 public immutable lendingToken;
+    IERC20 public immutable lendingToken;
 
     /// @notice Per-provider deposit balance used for bookkeeping.
     mapping(address => uint256) public deposits;
@@ -49,7 +49,7 @@ contract MockLender {
     /// @notice Sum of all provider deposits.
     uint256 public totalDeposited;
 
-    using SafeERC20 for MockERC20;
+    using SafeERC20 for IERC20;
 
     error InsufficientLiquidity(uint256 requested, uint256 available);
     error NotRepaid(uint256 required, uint256 actual);
@@ -59,7 +59,7 @@ contract MockLender {
     event Withdrawal(address indexed provider, uint256 amount);
     event FlashLoan(address indexed borrower, uint256 amount, uint256 fee);
 
-    constructor(MockERC20 lendingToken_) {
+    constructor(IERC20 lendingToken_) {
         lendingToken = lendingToken_;
     }
 
