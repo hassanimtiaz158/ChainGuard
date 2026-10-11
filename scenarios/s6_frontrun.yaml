@@ -1,0 +1,39 @@
+id: s6_frontrun
+title: Front-Running (Public Reveal and Unbounded Slippage)
+severity: high
+swc: SWC-114
+difficulty: intermediate
+real_world: "DEX front-running / sandwich attacks (2017-)"
+contracts:
+  vulnerable: VulnerableQuiz
+  secure: SecureQuiz
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s6_frontrun/VulnerableQuiz.sol
+  secure: contracts/src/scenarios/s6_frontrun/SecureQuiz.sol
+  attacker: contracts/src/scenarios/s6_frontrun/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 48
+  secure:
+    - 99
+# Front-running only exists when two transactions can be ordered by a third
+# party, so automine is switched off and the engine mines the attacker's
+# transaction ahead of the victim's. `attack` resubmits the plaintext answer
+# the attacker copied out of the victim's pending transaction.
+steps:
+  - action: set_automine
+    args: { enabled: false }
+  - action: deploy_attacker
+    args: { target: "$TARGET" }
+  - action: call
+    contract: attacker
+    fn: attack
+    args: { answer: "satoshi" }
+tracked_balances: [quiz, attacker]
+chain:
+  automine: false
+expected:
+  vulnerable: { outcome: success, attacker_takes_prize: true }
+  secure: { outcome: reverted }
+explanation_md: explanations/s6.md
