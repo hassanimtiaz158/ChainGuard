@@ -1,0 +1,39 @@
+id: s4_oracle
+title: Oracle Manipulation
+severity: critical
+swc: SWC-116
+difficulty: intermediate
+real_world: "bZx (2020)"
+contracts:
+  vulnerable: VulnerableLending
+  secure: SecureLending
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s4_oracle/VulnerableLending.sol
+  secure: contracts/src/scenarios/s4_oracle/SecureLending.sol
+  attacker: contracts/src/scenarios/s4_oracle/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 71
+  secure:
+    - 91
+    - 94
+steps:
+  - action: deploy_attacker
+    args:
+      target: "$TARGET"
+  - action: call
+    contract: attacker
+    fn: attack
+tracked_balances:
+  - victim
+  - attacker
+chain:
+  automine: true
+expected:
+  vulnerable:
+    outcome: success
+    attacker_over_borrows: true
+  secure:
+    outcome: reverted
+explanation_md: explanations/s4.md
