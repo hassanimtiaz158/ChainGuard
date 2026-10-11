@@ -1,0 +1,59 @@
+id: s7_sig_replay
+title: Signature Replay
+severity: high
+swc: SWC-121
+difficulty: intermediate
+real_world: "Pre-EIP-712 airdrops and bridges"
+contracts:
+  vulnerable: VulnerableClaim
+  secure: SecureClaim
+  attacker: Attacker
+source_paths:
+  vulnerable: contracts/src/scenarios/s7_sig_replay/VulnerableClaim.sol
+  secure: contracts/src/scenarios/s7_sig_replay/SecureClaim.sol
+  attacker: contracts/src/scenarios/s7_sig_replay/Attacker.sol
+diff_highlight:
+  vulnerable:
+    - 81
+  secure:
+    - 55
+    - 68
+# The vault is funded from a lab account, then the captured voucher is
+# redeemed twice. The vulnerable vault pays both times; the secure vault reverts
+# on the second attempt because the nonce has been spent. The signature is
+# produced off-chain by the runner with the lab signer key.
+steps:
+  - action: call
+    contract: vulnerable
+    fn: fund
+    value_eth: 5
+  - action: sign
+    contract: voucher
+    args:
+      to: "$ATTACKER"
+      amount: "1000000000000000000"
+      nonce: 0
+    output: signature
+  - action: deploy_attacker
+    args: { target: "$TARGET" }
+  - action: call
+    contract: attacker
+    fn: attack
+    args:
+      amount: "1000000000000000000"
+      nonce: 0
+      signature: "$signature"
+  - action: call
+    contract: attacker
+    fn: attack
+    args:
+      amount: "1000000000000000000"
+      nonce: 0
+      signature: "$signature"
+tracked_balances: [vault, attacker]
+chain:
+  automine: true
+expected:
+  vulnerable: { outcome: success, attacker_balance_eth: 2 }
+  secure: { outcome: reverted }
+explanation_md: explanations/s7.md
