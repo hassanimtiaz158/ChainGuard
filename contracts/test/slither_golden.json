@@ -1,0 +1,35 @@
+{
+  "slither_version": "0.11.6",
+  "vulnerable": {
+    "s1_reentrancy": [
+      "reentrancy-eth",
+      "reentrancy-events"
+    ],
+    "s2_access_control": [
+      "arbitrary-send-eth",
+      "tx-origin"
+    ],
+    "s3_integer_logic": [
+      "divide-before-multiply"
+    ],
+    "s4_oracle": [],
+    "s5_flashloan": [],
+    "s6_frontrun": [],
+    "s7_sig_replay": [
+      "arbitrary-send-eth"
+    ],
+    "s8_unchecked_call": [
+      "arbitrary-send-eth",
+      "unchecked-lowlevel",
+      "unchecked-transfer"
+    ]
+  },
+  "secure_exceptions": {
+    "src/scenarios/s7_sig_replay/SecureClaim.sol": [
+      "arbitrary-send-eth"
+    ],
+    "src/scenarios/s8_unchecked_call/SecurePayout.sol": [
+      "arbitrary-send-eth"
+    ]
+  }
+}

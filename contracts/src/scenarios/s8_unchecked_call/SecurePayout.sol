@@ -55,8 +55,10 @@ contract SecurePayout is IPayout {
         emit EthPaid(to, amount);
         // Paying a caller-named beneficiary is the desk's purpose; S8 isolates
         // the checked return value, not the destination policy.
+        // slither-disable-start arbitrary-send-eth
         // forge-lint: disable-next-line(arbitrary-send-eth)
         (bool success,) = to.call{value: amount}("");
+        // slither-disable-end arbitrary-send-eth
         if (!success) {
             revert TransferFailed();
         }

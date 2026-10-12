@@ -25,8 +25,44 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Scaffold placeholder
-        run: echo "contracts job wired in Prompt 7 (forge build/test/coverage) and Prompt 14 (Slither gate)."
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      # `contracts/lib` is gitignored (see Makefile: deps), so vendor it here.
+      - name: Vendor pinned dependencies
+        run: |
+          cd contracts
+          forge install --no-git --shallow \
+            foundry-rs/forge-std@v1.17.0 \
+            OpenZeppelin/openzeppelin-contracts@v5.7.0
+
+      - name: Format check
+        run: cd contracts && forge fmt --check
+
+      - name: Build
+        run: cd contracts && forge build
+
+      - name: Test
+        run: cd contracts && forge test -vvv
+
+      - name: Coverage
+        run: cd contracts && forge coverage --report summary --report lcov
+
+      - name: Upload lcov report
+        uses: actions/upload-artifact@v4
+        with:
+          name: contracts-lcov
+          path: contracts/lcov.info
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Slither gate
+        run: |
+          pip install slither-analyzer==0.11.6
+          scripts/slither_check.sh
 
   backend:
     name: backend

@@ -60,7 +60,7 @@ contract S7SignatureReplayTest is Test {
     }
 
     /// @dev Sign the vulnerable `(to, amount)` eth-message digest.
-    function _signVoucher(address to, uint256 amount) internal view returns (bytes memory) {
+    function _signVoucher(address to, uint256 amount) internal pure returns (bytes memory) {
         bytes32 digest =
             MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encodePacked(to, amount)));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(SIGNER_PK, digest);

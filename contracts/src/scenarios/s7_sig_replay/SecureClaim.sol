@@ -79,8 +79,10 @@ contract SecureClaim is IClaim, EIP712, Nonces {
         emit Claimed(to, amount, nonce);
 
         // The recipient is authorised by the signer's voucher.
+        // slither-disable-start arbitrary-send-eth
         // forge-lint: disable-next-line(arbitrary-send-eth)
         (bool ok,) = to.call{value: amount}("");
+        // slither-disable-end arbitrary-send-eth
         if (!ok) {
             revert PayoutFailed();
         }
