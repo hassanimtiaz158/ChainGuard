@@ -44,6 +44,27 @@ services:
       retries: 24
       start_period: 5s
 
+  # ------------------------------------------------------------- deployer --
+  # One-shot bootstrapper. Waits for Anvil, deploys every scenario's vulnerable
+  # and secure contracts, funds the victims, and drops `lab.json` on the shared
+  # lab volume where the api and worker read it. Restarting the lab re-runs it.
+  deployer:
+    build:
+      context: ./docker
+      dockerfile: deployer.Dockerfile
+    container_name: chainguard-deployer
+    restart: "no"
+    depends_on:
+      anvil:
+        condition: service_healthy
+    # The contracts tree is bind-mounted so the image needs no copy step; the
+    # `labstate` volume is where `lab.json` is published for the rest of the stack.
+    volumes:
+      - ./contracts:/app
+      - labstate:/lab
+    networks:
+      - chainguard
+
   # ------------------------------------------------------------- datastores --
   postgres:
     image: postgres:16-alpine

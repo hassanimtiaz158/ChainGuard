@@ -1,0 +1,10 @@
+{
+  "compile_force_framework": "foundry",
+  "exclude_dependencies": true,
+  "filter_paths": "lib/|test/|script/",
+  "solc_remaps": [
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/=lib/openzeppelin-contracts/"
+  ],
+  "detectors_to_exclude": "assembly,constable-states,low-level-calls,missing-inheritance,naming-convention,pragma,solc-version,too-many-digits"
+}
